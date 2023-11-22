@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ClsModule } from 'nestjs-cls';
 import { randomUUID } from 'crypto';
 import { Response } from 'express';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -11,14 +12,16 @@ import { Response } from 'express';
       global: true,
       interceptor: {
         mount: true,
-        setup(cls, context) {
+        generateId: true,
+        idGenerator(context) {
           const res = context.switchToHttp().getResponse<Response>();
           const uuid = randomUUID();
-          cls.set('user-id', uuid);
           res.setHeader('x-tracking-id', uuid);
+          return uuid;
         },
       },
     }),
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
