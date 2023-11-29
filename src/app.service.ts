@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TrackingLoggerService } from './logger/logger.service';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly clsService: ClsService) {}
+  constructor(private readonly logger: TrackingLoggerService) {}
+
   getHello(): string {
-    const trackingId = this.clsService.getId();
-    return 'Hello World!' + trackingId;
+    this.logger.log('sending hello to queue...');
+    return 'Hello World!';
+  }
+
+  getWarning() {
+    this.logger.warn('WARNING');
+    return 'Weird';
   }
 }
