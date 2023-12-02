@@ -15,10 +15,7 @@ export class TrackingLoggerService implements LoggerService {
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         winston.format.prettyPrint({ colorize: true }),
       ),
-      transports: [
-        new winston.transports.Console(),
-        // new winston.transports.Http(),
-      ],
+      transports: [new winston.transports.Console()],
     });
   }
 
@@ -32,6 +29,15 @@ export class TrackingLoggerService implements LoggerService {
 
   warn(message: string) {
     this.logger.warn(message, this.getContextMetaData());
+  }
+
+  http(payload: Omit<winston.LogEntry, 'level'>) {
+    this.logger.log({
+      level: 'info',
+      message: payload?.message ?? 'http log',
+      ...this.getContextMetaData(),
+      ...payload,
+    });
   }
 
   private getContextMetaData() {
