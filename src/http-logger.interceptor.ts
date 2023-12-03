@@ -10,29 +10,33 @@ import { Request, Response } from 'express';
 import { TRACKING_ID_HEADER_NAME } from './logger/constants';
 
 @Injectable()
-export class End2EndLoggerInterceptor implements NestInterceptor {
+export class HttpLoggerInterceptor implements NestInterceptor {
   constructor(private readonly logger: TrackingLoggerService) {}
   intercept(context: ExecutionContext, next: CallHandler<any>) {
     const now = Date.now();
-    const request = context.switchToHttp().getRequest<Request>();
-    this.logger.http({
-      message: 'request',
-      ...this.getRequestPayload(request),
-    });
+    if (context.getType() === 'http') {
+      const request = context.switchToHttp().getRequest<Request>();
+      this.logger.http({
+        message: 'request',
+        ...this.getRequestPayload(request),
+      });
+    }
 
     return next.handle().pipe(
       tap(() => {
-        const response = context.switchToHttp().getResponse<Response>();
-        response.on('close', () => {
-          const delay = Date.now() - now;
-          this.logger.http({
-            message: 'response',
-            status: response.statusCode,
-            trackingId: response.getHeader(TRACKING_ID_HEADER_NAME),
-            headers: response.getHeaders(),
-            delay,
+        if (context.getType() === 'http') {
+          const response = context.switchToHttp().getResponse<Response>();
+          response.on('close', () => {
+            const delay = Date.now() - now;
+            this.logger.http({
+              message: 'response',
+              status: response.statusCode,
+              trackingId: response.getHeader(TRACKING_ID_HEADER_NAME),
+              headers: response.getHeaders(),
+              delay,
+            });
           });
-        });
+        }
       }),
     );
   }

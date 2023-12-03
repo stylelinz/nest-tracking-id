@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from './logger/logger.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { End2EndLoggerInterceptor } from './end2end-logger.interceptor';
+import { HttpLoggerInterceptor } from './http-logger.interceptor';
 import { ClsInterceptor, ClsModule } from 'nestjs-cls';
 import { randomUUID } from 'node:crypto';
 import { Response } from 'express';
@@ -12,6 +12,7 @@ import { HttpFilter } from './http.filter';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { FOO_CLIENT_NAME, FOO_QUEUE } from './rmq/constants';
 import { AmqplibQueueOptions } from '@nestjs/microservices/external/rmq-url.interface';
+import { RmqContextInterceptor } from './rmq/rmq-context.interceptor';
 
 @Module({
   imports: [
@@ -22,9 +23,20 @@ import { AmqplibQueueOptions } from '@nestjs/microservices/external/rmq-url.inte
         mount: false,
         generateId: true,
         idGenerator(context) {
-          const res = context.switchToHttp().getResponse<Response>();
           const uuid = randomUUID();
-          res.setHeader(TRACKING_ID_HEADER_NAME, uuid);
+          switch (context.getType()) {
+            case 'http':
+              const res = context.switchToHttp().getResponse<Response>();
+              res.setHeader(TRACKING_ID_HEADER_NAME, uuid);
+              break
+            case 'rpc':
+              const payload = context.switchToRpc().getData();
+              if (typeof payload.trackingId === 'string')
+                return payload.trackingId;
+              break
+            case 'ws':
+              break
+          }
           return uuid;
         },
       },
@@ -47,7 +59,8 @@ import { AmqplibQueueOptions } from '@nestjs/microservices/external/rmq-url.inte
   controllers: [AppController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ClsInterceptor },
-    { provide: APP_INTERCEPTOR, useClass: End2EndLoggerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: HttpLoggerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: RmqContextInterceptor },
     { provide: APP_FILTER, useClass: HttpFilter },
     AppService,
   ],
