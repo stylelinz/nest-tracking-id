@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from './logger/logger.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { End2EndLoggerInterceptor } from './end2end-logger.interceptor';
 import { ClsInterceptor, ClsModule } from 'nestjs-cls';
 import { randomUUID } from 'node:crypto';
 import { Response } from 'express';
 import { TRACKING_ID_HEADER_NAME } from './logger/constants';
+import { AppFilter } from './app.filter';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TRACKING_ID_HEADER_NAME } from './logger/constants';
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ClsInterceptor },
     { provide: APP_INTERCEPTOR, useClass: End2EndLoggerInterceptor },
+    { provide: APP_FILTER, useClass: AppFilter },
     AppService,
   ],
 })

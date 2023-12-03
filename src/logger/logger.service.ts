@@ -23,8 +23,8 @@ export class TrackingLoggerService implements LoggerService {
     this.logger.log('info', message, this.getContextMetaData());
   }
 
-  error(message: string) {
-    this.logger.error(message, this.getContextMetaData());
+  error(error: Error) {
+    this.logger.error({ ...error, ...this.getContextMetaData() });
   }
 
   warn(message: string) {
