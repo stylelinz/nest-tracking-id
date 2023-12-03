@@ -8,7 +8,10 @@ import { ClsInterceptor, ClsModule } from 'nestjs-cls';
 import { randomUUID } from 'node:crypto';
 import { Response } from 'express';
 import { TRACKING_ID_HEADER_NAME } from './logger/constants';
-import { AppFilter } from './app.filter';
+import { HttpFilter } from './http.filter';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { FOO_CLIENT_NAME, FOO_QUEUE } from './rmq/constants';
+import { AmqplibQueueOptions } from '@nestjs/microservices/external/rmq-url.interface';
 
 @Module({
   imports: [
@@ -26,12 +29,26 @@ import { AppFilter } from './app.filter';
         },
       },
     }),
+    ClientsModule.register([
+      {
+        name: FOO_CLIENT_NAME,
+        transport: Transport.RMQ,
+        options: {
+          queue: FOO_QUEUE,
+          persistent: false,
+          urls: ['amqp://guest:guest@localhost:5672'],
+          queueOptions: {
+            durable: false,
+          } as AmqplibQueueOptions,
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ClsInterceptor },
     { provide: APP_INTERCEPTOR, useClass: End2EndLoggerInterceptor },
-    { provide: APP_FILTER, useClass: AppFilter },
+    { provide: APP_FILTER, useClass: HttpFilter },
     AppService,
   ],
 })

@@ -1,5 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { HELLO_MESSAGE } from './rmq/constants';
+import { ConfirmChannel, Message } from 'amqplib';
 
 @Controller()
 export class AppController {
@@ -10,8 +13,22 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('warn')
-  warning() {
-    return this.appService.getWarning();
+  @Get('eeerrr')
+  getErr() {
+    return this.appService.getError();
+  }
+
+  @Post('msg')
+  async sendMessage() {
+    return await this.appService.sendMessage();
+  }
+
+  @EventPattern(HELLO_MESSAGE)
+  async logHello(@Payload() data: any, @Ctx() context: RmqContext) {
+    const message = context.getMessage() as Message;
+    const channel = context.getChannelRef() as ConfirmChannel;
+
+    console.log(data);
+    channel.ack(message);
   }
 }

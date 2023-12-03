@@ -12,7 +12,7 @@ import { Response } from 'express';
 
 @Catch()
 @Injectable()
-export class AppFilter extends BaseExceptionFilter implements ExceptionFilter {
+export class HttpFilter extends BaseExceptionFilter implements ExceptionFilter {
   constructor(private readonly logger: TrackingLoggerService) {
     super();
   }
