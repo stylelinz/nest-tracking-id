@@ -28,14 +28,14 @@ import { RmqContextInterceptor } from './rmq/rmq-context.interceptor';
             case 'http':
               const res = context.switchToHttp().getResponse<Response>();
               res.setHeader(TRACKING_ID_HEADER_NAME, uuid);
-              break
+              break;
             case 'rpc':
               const payload = context.switchToRpc().getData();
               if (typeof payload.trackingId === 'string')
                 return payload.trackingId;
-              break
+              break;
             case 'ws':
-              break
+              break;
           }
           return uuid;
         },

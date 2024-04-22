@@ -7,6 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { TrackingLoggerService } from '../logger/logger.service';
 import { RmqContext } from '@nestjs/microservices';
+import { Message } from 'amqplib';
 
 @Injectable()
 export class RmqContextInterceptor implements NestInterceptor {
@@ -15,11 +16,12 @@ export class RmqContextInterceptor implements NestInterceptor {
     if (context.getType() === 'rpc') {
       const rmqCtx = context.switchToRpc().getContext<RmqContext>();
       const payload = context.switchToRpc().getData();
-      const message = rmqCtx.getMessage();
+      const { fields, properties } = rmqCtx.getMessage() as Message;
       const pattern = rmqCtx.getPattern();
       this.logger.http({
         payload,
-        message,
+        fields,
+        properties,
         pattern,
       });
     }

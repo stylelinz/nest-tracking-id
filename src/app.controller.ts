@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { HELLO_MESSAGE } from './rmq/constants';
@@ -19,8 +19,8 @@ export class AppController {
   }
 
   @Post('msg')
-  async sendMessage() {
-    return await this.appService.sendMessage();
+  async sendMessage(@Body() body: any) {
+    return await this.appService.sendMessage(body);
   }
 
   @EventPattern(HELLO_MESSAGE)
