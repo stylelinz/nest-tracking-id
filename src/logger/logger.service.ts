@@ -1,7 +1,14 @@
+import { LoggingWinston } from '@google-cloud/logging-winston';
 import { Inject, Injectable, LoggerService, Scope } from '@nestjs/common';
 import { INQUIRER } from '@nestjs/core';
 import { ClsService } from 'nestjs-cls';
 import winston from 'winston';
+
+const loggingWinston = new LoggingWinston({
+  projectId: 'turing-certs-test',
+  keyFilename: 'turing-certs-test-72b988e8eafd.json',
+  labels: { name: 'logging-POC' },
+});
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class TrackingLoggerService implements LoggerService {
@@ -15,12 +22,12 @@ export class TrackingLoggerService implements LoggerService {
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         winston.format.prettyPrint({ colorize: true }),
       ),
-      transports: [new winston.transports.Console()],
+      transports: [new winston.transports.Console(), loggingWinston],
     });
   }
 
   log(message: string) {
-    this.logger.log('info', message, this.getContextMetaData());
+    this.logger.log('info', { message, ...this.getContextMetaData() });
   }
 
   error(error: Error) {

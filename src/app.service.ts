@@ -25,6 +25,7 @@ export class AppService {
   }
 
   getError() {
+    this.logger.warn('Dont`t go any further');
     throw new BadRequestException('U shall not pass');
   }
 }
