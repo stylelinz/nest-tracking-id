@@ -17,17 +17,22 @@ export class TrackingLoggerService implements LoggerService {
     private readonly clsService: ClsService,
     @Inject(INQUIRER) private readonly parentClass: object,
   ) {
+    const loggingFormat =
+      !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+        ? winston.format.prettyPrint({ colorize: true, depth: 1 })
+        : winston.format.json();
+
     this.logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-        winston.format.prettyPrint({ colorize: true }),
+        loggingFormat,
       ),
       transports: [new winston.transports.Console(), loggingWinston],
     });
   }
 
   log(message: string) {
-    this.logger.log('info', { message, ...this.getContextMetaData() });
+    this.logger.log('info', message, this.getContextMetaData());
   }
 
   error(error: Error) {

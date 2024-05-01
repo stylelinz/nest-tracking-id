@@ -23,20 +23,25 @@ export class HttpLoggerInterceptor implements NestInterceptor {
     }
 
     return next.handle().pipe(
-      tap(() => {
-        if (context.getType() === 'http') {
-          const response = context.switchToHttp().getResponse<Response>();
-          response.on('close', () => {
-            const delay = Date.now() - now;
-            this.logger.http({
-              message: 'response',
-              status: response.statusCode,
-              trackingId: response.getHeader(TRACKING_ID_HEADER_NAME),
-              headers: response.getHeaders(),
-              delay,
+      tap({
+        next: () => {
+          if (context.getType() === 'http') {
+            const response = context.switchToHttp().getResponse<Response>();
+            response.on('close', () => {
+              const delay = Date.now() - now;
+              this.logger.http({
+                message: 'response',
+                status: response.statusCode,
+                trackingId: response.getHeader(TRACKING_ID_HEADER_NAME),
+                headers: response.getHeaders(),
+                delay,
+              });
             });
-          });
-        }
+          }
+        },
+        error: (err) => {
+          this.logger.error(err);
+        },
       }),
     );
   }

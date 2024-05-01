@@ -6,21 +6,16 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { TrackingLoggerService } from './logger/logger.service';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Response } from 'express';
 
 @Catch()
 @Injectable()
 export class HttpFilter extends BaseExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: TrackingLoggerService) {
+  constructor() {
     super();
   }
   catch(exception: unknown, host: ArgumentsHost) {
-    if (exception instanceof Error) {
-      this.logger.error(exception);
-    }
-
     const httpStatus =
       exception instanceof HttpException
         ? exception.getStatus()
