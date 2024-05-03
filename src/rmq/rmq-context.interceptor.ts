@@ -19,6 +19,7 @@ export class RmqContextInterceptor implements NestInterceptor {
       const { fields, properties } = rmqCtx.getMessage() as Message;
       const pattern = rmqCtx.getPattern();
       this.logger.http({
+        message: 'Incoming RMQ message',
         payload,
         fields,
         properties,
